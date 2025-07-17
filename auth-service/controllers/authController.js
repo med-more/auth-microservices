@@ -26,4 +26,19 @@ exports.register = async (req, res) => {
   }
 };
 
+exports.login = async (req, res) => {
+  const { email, password } = req.body;
 
+  try {
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ msg: 'Invalid credentials' });
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });
+
+    const token = generateToken(user);
+    res.status(200).json({ token, user: { id: user._id, email: user.email, role: user.role } });
+  } catch (error) {
+    res.status(500).json({ msg: error.message });
+  }
+};
